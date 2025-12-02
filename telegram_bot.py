@@ -578,6 +578,102 @@ async def _message_handler(update: Any, context: Any):
                 del _pending_auth[user_id]
         return
     
+    from database import is_telegram_session_valid
+    if not is_telegram_session_valid(user_id):
+        return
+    
+    # Handle explicit commands (ssh:, api:) BEFORE checking pending operations
+    # to avoid conflicts with selective shutdown selection state
+    if message_text.startswith("ssh:"):
+        try:
+            parts = message_text.split(":", 5)
+            if len(parts) < 3:
+                await update.message.reply_text("❌ Invalid format. Need: ssh:host:user::description")
+                return
+            
+            _, host, user = parts[:3]
+            # command field deprecated; allow empty segment
+            description = parts[4] if len(parts) > 4 else (parts[3] if len(parts) > 3 else "")
+            
+            from dms_logic import test_ssh_connection
+            
+            test = test_ssh_connection(host, user)
+            
+            if not test["success"]:
+                await update.message.reply_text(f"❌ Connection test failed: {test['error']}")
+                return
+            
+            try:
+                await update.message.delete()
+            except:
+                pass
+            
+            _pending_operations[user_id] = {
+                "operation": "add_ssh",
+                "state": "awaiting_otp",
+                "data": {"host": host, "user": user, "description": description}
+            }
+            await update.message.reply_text(
+                f"✅ Connection test successful\n\n"
+                f"Send your TOTP code to confirm adding:\n`{user}@{host}`",
+                parse_mode="Markdown"
+            )
+        except Exception as e:
+            await update.message.reply_text(f"❌ Error: {str(e)}")
+        return
+    
+    if message_text.startswith(("api:", "api|")):
+        try:
+            delimiter = ":" if message_text.startswith("api:") else "|"
+            parts = message_text.split(delimiter, 6)
+            if len(parts) < 4:
+                await update.message.reply_text("❌ Invalid format. Need: api:type:host:api_key:api_endpoint:description (or use | as delimiter)")
+                return
+            
+            _, api_type, host, api_key = parts[:4]
+            api_endpoint = parts[4] if len(parts) > 4 else ""
+            description = parts[5] if len(parts) > 5 else ""
+
+            # Trim accidental whitespace/newlines from individual fields to avoid login failures
+            api_type = api_type.strip()
+            host = host.strip()
+            api_key = api_key.strip()
+            api_endpoint = api_endpoint.strip()
+            description = description.strip()
+            
+            from dms_logic import test_api_connection
+            from plugins import list_plugins
+            
+            if api_type not in list_plugins():
+                await update.message.reply_text(f"❌ Unknown type: {api_type}")
+                return
+            
+            test = test_api_connection(host, api_type, api_key, api_endpoint)
+            
+            if not test["success"]:
+                await update.message.reply_text(f"❌ Connection test failed: {test['error']}")
+                return
+            
+            try:
+                await update.message.delete()
+            except:
+                pass
+            
+            _pending_operations[user_id] = {
+                "operation": "add_api",
+                "state": "awaiting_otp",
+                "data": {"host": host, "api_type": api_type, "api_key": api_key, "api_endpoint": api_endpoint, "description": description}
+            }
+            await update.message.reply_text(
+                f"✅ Connection test successful\n\n"
+                f"Send your TOTP code to confirm adding:\n`{host}` ({api_type})",
+                parse_mode="Markdown"
+            )
+        except Exception as e:
+            await update.message.reply_text(f"❌ Error: {str(e)}")
+        return
+    
+    # Now check pending operations for state-based flows
     if user_id in _pending_operations:
         op = _pending_operations[user_id]
         
@@ -849,99 +945,6 @@ async def _message_handler(update: Any, context: Any):
             except Exception as e:
                 await update.message.reply_text(f"❌ Error: {str(e)}")
                 del _pending_operations[user_id]
-        return
-    
-    from database import is_telegram_session_valid
-    if not is_telegram_session_valid(user_id):
-        return
-    
-    if message_text.startswith("ssh:"):
-        try:
-            parts = message_text.split(":", 5)
-            if len(parts) < 3:
-                await update.message.reply_text("❌ Invalid format. Need: ssh:host:user::description")
-                return
-            
-            _, host, user = parts[:3]
-            # command field deprecated; allow empty segment
-            description = parts[4] if len(parts) > 4 else (parts[3] if len(parts) > 3 else "")
-            
-            from dms_logic import test_ssh_connection
-            
-            test = test_ssh_connection(host, user)
-            
-            if not test["success"]:
-                await update.message.reply_text(f"❌ Connection test failed: {test['error']}")
-                return
-            
-            try:
-                await update.message.delete()
-            except:
-                pass
-            
-            _pending_operations[user_id] = {
-                "operation": "add_ssh",
-                "state": "awaiting_otp",
-                "data": {"host": host, "user": user, "description": description}
-            }
-            await update.message.reply_text(
-                f"✅ Connection test successful\n\n"
-                f"Send your TOTP code to confirm adding:\n`{user}@{host}`",
-                parse_mode="Markdown"
-            )
-        except Exception as e:
-            await update.message.reply_text(f"❌ Error: {str(e)}")
-        return
-    
-    if message_text.startswith(("api:", "api|")):
-        try:
-            delimiter = ":" if message_text.startswith("api:") else "|"
-            parts = message_text.split(delimiter, 6)
-            if len(parts) < 4:
-                await update.message.reply_text("❌ Invalid format. Need: api:type:host:api_key:api_endpoint:description (or use | as delimiter)")
-                return
-            
-            _, api_type, host, api_key = parts[:4]
-            api_endpoint = parts[4] if len(parts) > 4 else ""
-            description = parts[5] if len(parts) > 5 else ""
-
-            # Trim accidental whitespace/newlines from individual fields to avoid login failures
-            api_type = api_type.strip()
-            host = host.strip()
-            api_key = api_key.strip()
-            api_endpoint = api_endpoint.strip()
-            description = description.strip()
-            
-            from dms_logic import test_api_connection
-            from plugins import list_plugins
-            
-            if api_type not in list_plugins():
-                await update.message.reply_text(f"❌ Unknown type: {api_type}")
-                return
-            
-            test = test_api_connection(host, api_type, api_key, api_endpoint)
-            
-            if not test["success"]:
-                await update.message.reply_text(f"❌ Connection test failed: {test['error']}")
-                return
-            
-            try:
-                await update.message.delete()
-            except:
-                pass
-            
-            _pending_operations[user_id] = {
-                "operation": "add_api",
-                "state": "awaiting_otp",
-                "data": {"host": host, "api_type": api_type, "api_key": api_key, "api_endpoint": api_endpoint, "description": description}
-            }
-            await update.message.reply_text(
-                f"✅ Connection test successful\n\n"
-                f"Send your TOTP code to confirm adding:\n`{host}` ({api_type})",
-                parse_mode="Markdown"
-            )
-        except Exception as e:
-            await update.message.reply_text(f"❌ Error: {str(e)}")
         return
     
     # Remove host (SSH if has colon, API otherwise)
