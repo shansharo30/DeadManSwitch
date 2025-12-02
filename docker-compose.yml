@@ -1,0 +1,53 @@
+services:
+  dms-api:
+    build: .
+    container_name: dms-api
+    restart: unless-stopped
+    
+    ports:
+      - "8000:8000"
+    
+    environment:
+      # Data directory
+      - DATA_DIR=/app/data
+      
+      # Master Secret Key
+      - MASTER_SECRET=${MASTER_SECRET:-}
+
+      # Monitoring interval (seconds)
+      - MONITORING_INTERVAL=${MONITORING_INTERVAL:-60}
+      
+      # Telegram bot (optional)
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+    
+    volumes:
+      # Persistent data (database, logs, SSH keys, secrets)
+      - ./data:/app/data
+    
+    networks:
+      - dms-network
+    
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  dms-network:
+    driver: bridge

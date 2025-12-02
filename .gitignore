@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+
+# Data and logs
+*.db
+*.log
+data/
+
+# Environment
+.env
+
+# SSH keys
+ssh/
+*.pem
+*.key
+id_rsa*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
