@@ -84,20 +84,79 @@ class VCenterPlugin(PluginBase):
             logger.info(f"vCenter connection established to {host} for shutdown phase")
             
             content = si.RetrieveContent()
-            obj_view = content.viewManager.CreateContainerView(
+            
+            # Step 1: Get all VMs and power them off
+            vm_view = content.viewManager.CreateContainerView(
+                content.rootFolder,
+                [vim.VirtualMachine],
+                True
+            )
+            vms = vm_view.view
+            vm_view.Destroy()
+            
+            vms_powered_off = 0
+            vms_failed = 0
+            for vm in vms:
+                try:
+                    if vm.runtime.powerState == vim.VirtualMachinePowerState.poweredOn:
+                        logger.info(f"Powering off VM: {vm.name}")
+                        task = vm.PowerOffVM_Task()
+                        # Wait for task completion
+                        while task.info.state not in [vim.TaskInfo.State.success, vim.TaskInfo.State.error]:
+                            pass
+                        if task.info.state == vim.TaskInfo.State.success:
+                            vms_powered_off += 1
+                            logger.info(f"VM {vm.name} powered off successfully")
+                        else:
+                            vms_failed += 1
+                            logger.error(f"Failed to power off VM {vm.name}: {task.info.error}")
+                    else:
+                        logger.debug(f"VM {vm.name} already powered off")
+                except Exception as vm_error:
+                    vms_failed += 1
+                    logger.error(f"Error powering off VM {vm.name}: {type(vm_error).__name__}: {vm_error}")
+            
+            logger.info(f"VMs powered off: {vms_powered_off}, failed: {vms_failed}")
+            
+            # Step 2: Get all ESXi hosts and shut them down immediately
+            host_view = content.viewManager.CreateContainerView(
                 content.rootFolder,
                 [vim.HostSystem],
                 True
             )
+            hosts = host_view.view
+            host_view.Destroy()
             
-            host_list = obj_view.view
-            obj_view.Destroy()
+            hosts_shutdown = 0
+            hosts_failed = 0
+            for esxi_host in hosts:
+                try:
+                    logger.info(f"Forcing immediate shutdown of ESXi host: {esxi_host.name}")
+                    
+                    # Force immediate shutdown - no maintenance mode, no graceful shutdown
+                    esxi_host.ShutdownHost_Task(force=True)
+                    hosts_shutdown += 1
+                    logger.info(f"Forced shutdown initiated for {esxi_host.name}")
+                    
+                except Exception as host_error:
+                    hosts_failed += 1
+                    logger.error(f"Error shutting down ESXi host {esxi_host.name}: {type(host_error).__name__}: {host_error}")
             
-            for host_obj in host_list:
-                logger.info(f"Processing ESXi host: {host_obj.name}")
+            logger.info(f"ESXi hosts shutdown: {hosts_shutdown}, failed: {hosts_failed}")
             
-            result["status"] = "pending_implementation"
-            result["details"] = "pyVmomi API requires documentation review"
+            # Build result summary
+            total_vms = vms_powered_off + vms_failed
+            total_hosts = hosts_shutdown + hosts_failed
+            
+            if hosts_failed == 0 and vms_failed == 0:
+                result["status"] = "success"
+                result["details"] = f"Shutdown complete: {vms_powered_off} VMs powered off, {hosts_shutdown} ESXi hosts shutdown"
+            elif hosts_shutdown > 0 or vms_powered_off > 0:
+                result["status"] = "partial"
+                result["details"] = f"Partial shutdown: {vms_powered_off}/{total_vms} VMs, {hosts_shutdown}/{total_hosts} hosts"
+            else:
+                result["status"] = "error"
+                result["details"] = f"Shutdown failed: {vms_failed} VM errors, {hosts_failed} host errors"
             
             Disconnect(si)
             
